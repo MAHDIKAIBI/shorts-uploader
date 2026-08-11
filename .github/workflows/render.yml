@@ -1,0 +1,52 @@
+name: Lord Mahdi Render Pipeline
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight UTC
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  render_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python Dependencies
+        run: pip install g4f google-api-python-client google-auth-httplib2 google-auth-oauthlib pytz
+
+      - name: Retrieve Google Drive Data Token
+        run: |
+          echo "${{ secrets.G_DRIVE_TOKEN }}" > drive_token.json
+          # Note: A script to download videos using this token would go here, 
+          # fetching from I:\My Drive\Millionaire\videos equivalent in drive
+
+      - name: Retrieve Google Drive Engine Token
+        run: |
+          echo "${{ secrets.G_DRIVE_TOKEN_ENGINE }}" > engine_token.json
+          # Note: Script to download Python engines from I:\My Drive\Millionaire\engine
+
+      - name: Run AI Orchestrator (g4f)
+        run: |
+          python orchestrator.py
+
+      - name: Install Remotion Dependencies
+        run: npm ci
+
+      - name: Render Videos
+        run: |
+          npm run build
+
+      - name: Upload to YouTube
+        run: |
+          python hydraulic_press_uploader.py

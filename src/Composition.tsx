@@ -13,14 +13,16 @@ export const MainComposition: React.FC<{
 }> = ({ videoUrl, hook, comment1, comment2, comment3 }) => {
     const { durationInFrames } = useVideoConfig();
     
-    // Fallback to local asset if no URL provided (for local dev)
-    const src = videoUrl || 'video.mp4'; 
+    // Extract just the filename from whatever path the orchestrator passes
+    // Works with absolute paths, relative paths, or bare filenames
+    const videoFilename = videoUrl ? videoUrl.split('/').pop() || 'video.mp4' : 'video.mp4';
+    const src = staticFile(`videos/${videoFilename}`);
 
     return (
         <AbsoluteFill style={{ backgroundColor: 'black' }}>
             {/* 1. Base Video Element */}
             <OffthreadVideo 
-                src={staticFile(src)}
+                src={src}
                 style={{ 
                     width: '100%', 
                     height: '100%', 

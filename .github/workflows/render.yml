@@ -38,10 +38,24 @@ jobs:
       - name: Install Remotion Dependencies
         run: npm ci
 
+      - name: Debug - List downloaded assets
+        run: |
+          echo "--- Files in ./public/videos ---"
+          ls -la ./public/videos/ 2>/dev/null || echo "EMPTY OR MISSING"
+          echo "--- Python files in root ---"
+          ls -la *.py 2>/dev/null || echo "No .py files"
+          echo "--- orchestrator.py VIDEOS_DIR default ---"
+          grep -n "VIDEOS_DIR" orchestrator.py || echo "No VIDEOS_DIR found"
+
       - name: Run AI Orchestrator (g4f)
+        env:
+          VIDEOS_DIR: ./public/videos
+          OUTPUT_DIR: ./rendered_videos
         run: |
           python orchestrator.py
 
       - name: Upload to YouTube
+        env:
+          OUTPUT_DIR: ./rendered_videos
         run: |
           python hydraulic_press_uploader.py

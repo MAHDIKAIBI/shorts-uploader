@@ -5,14 +5,14 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2.credentials import Credentials
 
-def download_folder(service, folder_name, local_path):
-    # Find the folder ID
-    query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+def download_folder(service, folder_name, parent_id, local_path):
+    # Find the folder ID inside the parent
+    query = f"name='{folder_name}' and '{parent_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
     results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
     items = results.get('files', [])
     
     if not items:
-        print(f"[!] Folder '{folder_name}' not found.")
+        print(f"[!] Folder '{folder_name}' not found inside parent {parent_id}.")
         return
         
     folder_id = items[0]['id']
@@ -40,11 +40,23 @@ def main():
     creds = Credentials.from_authorized_user_file('drive_token.json')
     service = build('drive', 'v3', credentials=creds)
     
+    print("--- FINDING MILLIONAIRE FOLDER ---")
+    query = "name='Millionaire' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+    results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+    items = results.get('files', [])
+    
+    if not items:
+        print("[!] FATAL: Could not find 'Millionaire' folder on Google Drive!")
+        return
+        
+    millionaire_id = items[0]['id']
+    print(f"[*] Found 'Millionaire' folder (ID: {millionaire_id})")
+    
     print("--- DOWNLOADING ENGINE ---")
-    download_folder(service, 'engine', './')
+    download_folder(service, 'engine', millionaire_id, './')
     
     print("--- DOWNLOADING VIDEOS ---")
-    download_folder(service, 'videos', './videos')
+    download_folder(service, 'videos', millionaire_id, './videos')
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, OffthreadVideo, useVideoConfig, useCurrentFrame, spring, interpolate } from 'remotion';
+import { AbsoluteFill, OffthreadVideo, useVideoConfig, useCurrentFrame, spring, interpolate, staticFile } from 'remotion';
 import { CinematicGrade } from './components/Effects';
 import { DynamicTopBar } from './components/DynamicTopBar';
 import { FloatingCallouts } from './components/FloatingCallouts';
@@ -20,7 +20,7 @@ export const MainComposition: React.FC<{
         <AbsoluteFill style={{ backgroundColor: 'black' }}>
             {/* 1. Base Video Element */}
             <OffthreadVideo 
-                src={src}
+                src={staticFile(src)}
                 style={{ 
                     width: '100%', 
                     height: '100%', 

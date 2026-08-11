@@ -56,7 +56,7 @@ def main():
     download_folder(service, 'engine', millionaire_id, './')
     
     print("--- DOWNLOADING VIDEOS ---")
-    download_folder(service, 'videos', millionaire_id, './videos')
+    download_folder(service, 'videos', millionaire_id, './public/videos')
 
 if __name__ == '__main__':
     main()

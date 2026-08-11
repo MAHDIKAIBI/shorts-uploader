@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -37,7 +37,7 @@ jobs:
           python orchestrator.py
 
       - name: Install Remotion Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Render Videos
         run: |

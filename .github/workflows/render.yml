@@ -28,7 +28,7 @@ jobs:
       - name: Retrieve Google Drive Token
         run: |
           echo "${{ secrets.G_DRIVE_TOKEN }}" > drive_token.json
-          # Note: Script to download both videos and engine scripts from I:\My Drive\Millionaire
+          python download_assets.py
 
       - name: Run AI Orchestrator (g4f)
         run: |

@@ -32,16 +32,12 @@ jobs:
           EOF
           python download_assets.py
 
-      - name: Run AI Orchestrator (g4f)
-        run: |
-          python orchestrator.py
-
       - name: Install Remotion Dependencies
         run: npm ci
 
-      - name: Render Videos
+      - name: Run AI Orchestrator (g4f)
         run: |
-          npm run build
+          python orchestrator.py
 
       - name: Upload to YouTube
         run: |

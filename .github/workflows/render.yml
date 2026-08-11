@@ -37,7 +37,7 @@ jobs:
           python orchestrator.py
 
       - name: Install Remotion Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Render Videos
         run: |

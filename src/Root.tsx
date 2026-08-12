@@ -10,16 +10,22 @@ export const RemotionRoot: React.FC = () => {
             <Composition
                 id="LordMahdiShort"
                 component={MainComposition}
-                durationInFrames={900}
                 fps={60}
                 width={1080}
                 height={1920}
+                calculateMetadata={({ props }) => {
+                    return {
+                        durationInFrames: (props as any).durationInFrames || 900,
+                        props
+                    };
+                }}
                 defaultProps={{
-                    videoUrl: '', // To be passed via render script
-                    hook: 'Why did this 9mm bullet do THIS under 100 tons of pressure?',
+                    videoUrl: '', 
+                    durationInFrames: 900,
+                    hook: 'Why did this happen under 100 tons of pressure?',
                     comment1: 'Wait for the spark...',
                     comment2: 'Did you see that?',
-                    comment3: 'Watch the brass casing closely!'
+                    comment3: 'Watch closely!'
                 }}
             />
         </>

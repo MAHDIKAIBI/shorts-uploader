@@ -59,3 +59,7 @@ jobs:
           OUTPUT_DIR: ./rendered_videos
         run: |
           python hydraulic_press_uploader.py
+
+      - name: Save State to Google Drive
+        run: |
+          python upload_state.py

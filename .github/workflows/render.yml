@@ -8,6 +8,11 @@ on:
 jobs:
   render_and_upload:
     runs-on: ubuntu-latest
+    services:
+      ollama:
+        image: ollama/ollama
+        ports:
+          - 11434:11434
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -46,6 +51,11 @@ jobs:
           ls -la *.py 2>/dev/null || echo "No .py files"
           echo "--- orchestrator.py VIDEOS_DIR default ---"
           grep -n "VIDEOS_DIR" orchestrator.py || echo "No VIDEOS_DIR found"
+
+      - name: Pull Qwen 2.5 Vision Model (Fallback Engine)
+        run: |
+          echo "Pulling qwen2.5vl:7b into local Ollama service..."
+          curl -X POST http://localhost:11434/api/pull -d '{"name": "qwen2.5vl:7b"}'
 
       - name: Run AI Orchestrator (g4f)
         env:

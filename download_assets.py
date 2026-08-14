@@ -4,11 +4,28 @@ import json
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2.credentials import Credentials
+from googleapiclient.errors import HttpError
+import time
+
+def execute_with_retry(request_func, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            return request_func()
+        except HttpError as e:
+            if e.resp.status in [500, 502, 503, 504, 429, 403]:
+                print(f"[!] Google API Error ({e.resp.status}). Retrying {attempt+1}/{max_retries} in {2**attempt}s...")
+                time.sleep(2 ** attempt)
+            else:
+                raise
+        except Exception as e:
+            print(f"[!] Unknown Error: {e}. Retrying {attempt+1}/{max_retries} in {2**attempt}s...")
+            time.sleep(2 ** attempt)
+    raise Exception("Max retries exceeded for Google API request.")
 
 def download_folder(service, folder_name, parent_id, local_path):
     # Find the folder ID inside the parent
     query = f"name='{folder_name}' and '{parent_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+    results = execute_with_retry(lambda: service.files().list(q=query, spaces='drive', fields='files(id, name)').execute())
     items = results.get('files', [])
     
     if not items:
@@ -21,8 +38,8 @@ def download_folder(service, folder_name, parent_id, local_path):
     os.makedirs(local_path, exist_ok=True)
     
     # List files in the folder
-    query = f"'{folder_id}' in parents and trashed=false"
-    results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+    query = f"'{folder_id}' in parents and mimeType != 'application/vnd.google-apps.folder' and trashed=false"
+    results = execute_with_retry(lambda: service.files().list(q=query, spaces='drive', fields='files(id, name)').execute())
     files = results.get('files', [])
     
     for f in files:
@@ -34,7 +51,7 @@ def download_folder(service, folder_name, parent_id, local_path):
         downloader = MediaIoBaseDownload(fh, request)
         done = False
         while done is False:
-            status, done = downloader.next_chunk()
+            status, done = execute_with_retry(lambda: downloader.next_chunk())
 
 def main():
     creds = Credentials.from_authorized_user_file('drive_token.json')
@@ -42,7 +59,7 @@ def main():
     
     print("--- FINDING MILLIONAIRE FOLDER ---")
     query = "name='Millionaire' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+    results = execute_with_retry(lambda: service.files().list(q=query, spaces='drive', fields='files(id, name)').execute())
     items = results.get('files', [])
     
     if not items:

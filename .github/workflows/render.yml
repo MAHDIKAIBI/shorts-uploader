@@ -6,13 +6,60 @@ on:
   workflow_dispatch: # Allow manual trigger for testing
 
 jobs:
-  render_and_upload:
+  ai_machine:
+    name: Vision AI Engine (Machine 1)
     runs-on: ubuntu-latest
     services:
       ollama:
         image: ollama/ollama
         ports:
           - 11434:11434
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install System Dependencies (FFmpeg)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install Python Dependencies
+        run: pip install requests google-api-python-client google-auth-httplib2 google-auth-oauthlib pytz g4f
+
+      - name: Retrieve Google Drive Token
+        run: |
+          cat << 'EOF' > drive_token.json
+          ${{ secrets.G_DRIVE_TOKEN }}
+          EOF
+          python download_assets.py
+
+      - name: Pull Qwen 2.5 Vision Model (Fallback Engine)
+        run: |
+          echo "Pulling qwen2.5vl:7b into local Ollama service..."
+          curl -X POST http://localhost:11434/api/pull -d '{"name": "qwen2.5vl:7b"}'
+
+      - name: Run AI Orchestrator (AI Only)
+        env:
+          VIDEOS_DIR: ./public/videos
+          OUTPUT_DIR: ./rendered_videos
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          python orchestrator.py --ai-only
+          
+      - name: Pass Metadata to Render Machine
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai_metadata
+          path: ./rendered_videos/
+          if-no-files-found: ignore
+
+  render_machine:
+    name: Remotion Video Renderer (Machine 2)
+    needs: ai_machine
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -31,7 +78,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Install Python Dependencies
-        run: pip install g4f google-api-python-client google-auth-httplib2 google-auth-oauthlib pytz
+        run: pip install requests google-api-python-client google-auth-httplib2 google-auth-oauthlib pytz g4f
 
       - name: Retrieve Google Drive Token
         run: |
@@ -40,33 +87,26 @@ jobs:
           EOF
           python download_assets.py
 
+      - name: Download Metadata from AI Machine
+        uses: actions/download-artifact@v4
+        with:
+          name: ai_metadata
+          path: ./rendered_videos/
+
       - name: Install Remotion Dependencies
         run: npm ci
 
-      - name: Debug - List downloaded assets
-        run: |
-          echo "--- Files in ./public/videos ---"
-          ls -la ./public/videos/ 2>/dev/null || echo "EMPTY OR MISSING"
-          echo "--- Python files in root ---"
-          ls -la *.py 2>/dev/null || echo "No .py files"
-          echo "--- orchestrator.py VIDEOS_DIR default ---"
-          grep -n "VIDEOS_DIR" orchestrator.py || echo "No VIDEOS_DIR found"
-
-      - name: Pull Qwen 2.5 Vision Model (Fallback Engine)
-        run: |
-          echo "Pulling qwen2.5vl:7b into local Ollama service..."
-          curl -X POST http://localhost:11434/api/pull -d '{"name": "qwen2.5vl:7b"}'
-
-      - name: Run AI Orchestrator (g4f)
+      - name: Run AI Orchestrator (Render Only)
         env:
           VIDEOS_DIR: ./public/videos
           OUTPUT_DIR: ./rendered_videos
         run: |
-          python orchestrator.py
+          python orchestrator.py --render-only
 
       - name: Upload to YouTube
         env:
           OUTPUT_DIR: ./rendered_videos
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         run: |
           python hydraulic_press_uploader.py
 

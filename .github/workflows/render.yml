@@ -24,10 +24,11 @@ jobs:
           python-version: '3.11'
 
       - name: Install System Dependencies (FFmpeg)
-        sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
-        sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list 2>/dev/null || true
-        echo "http://archive.ubuntu.com/ubuntu/" | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        run: |
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list 2>/dev/null || true
+          echo "http://archive.ubuntu.com/ubuntu/" | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
+          sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Install Python Dependencies
         run: pip install requests google-api-python-client google-auth-httplib2 google-auth-oauthlib pytz g4f
@@ -78,10 +79,11 @@ jobs:
           python-version: '3.11'
 
       - name: Install System Dependencies (FFmpeg)
-        sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
-        sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list 2>/dev/null || true
-        echo "http://archive.ubuntu.com/ubuntu/" | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        run: |
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list 2>/dev/null || true
+          echo "http://archive.ubuntu.com/ubuntu/" | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
+          sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Install Python Dependencies
         run: pip install requests google-api-python-client google-auth-httplib2 google-auth-oauthlib pytz g4f
